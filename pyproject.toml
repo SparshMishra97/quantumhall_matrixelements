@@ -1,10 +1,9 @@
 [build-system]
-requires = ["setuptools>=69", "wheel"]
+requires = ["setuptools>=69", "setuptools_scm[toml]>=6.2", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "quantumhall_matrixelements"
-version = "0.1.0"
 description = "Landau-level plane-wave form factors and exchange kernels for quantum Hall systems."
 readme = "README.md"
 authors = [
@@ -28,6 +27,8 @@ dependencies = [
   "hankel>=1.2"
 ]
 
+dynamic = ["version"]
+
 [project.optional-dependencies]
 dev = [
   "pytest>=8.0",
@@ -41,6 +42,11 @@ dev = [
 [project.urls]
 Homepage = "https://github.com/wolft/quantumhall_matrixelements"
 Issues = "https://github.com/wolft/quantumhall_matrixelements/issues"
+
+[tool.setuptools_scm]
+version_scheme = "guess-next-dev"
+local_scheme = "node-and-date"
+fallback_version = "0.0"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -66,4 +72,3 @@ ignore_missing_imports = true
 [tool.coverage.run]
 branch = true
 source = ["quantumhall_matrixelements"]
-
