@@ -44,7 +44,15 @@ $$ F_{n',n}(\mathbf{q}) = \langle n' | e^{i \mathbf{q} \cdot \mathbf{R}} | n \ra
 
 Analytically, these are given by:
 
-$$ F_{n',n}(\mathbf{q}) = i^{|n-n'|} e^{i(n-n')\theta_\mathbf{q}} \sqrt{\frac{n_<!}{n_>!}} \left( \frac{|\mathbf{q}|\ell_B}{\sqrt{2}} \right)^{|n-n'|} L_{n_<}^{|n-n'|}\left( \frac{|\mathbf{q}|^2\ell_B^2}{2} \right) e^{-|\mathbf{q}|^2\ell_B^2/4} $$
+$$
+F_{n',n}(\mathbf{q}) =
+i^{|n-n'|}
+e^{i(n-n')\theta_{\mathbf{q}}}
+\sqrt{\frac{n_{<}!}{n_{>}!}}
+\left( \frac{|\mathbf{q}|\ell_{B}}{\sqrt{2}} \right)^{|n-n'|}
+L_{n_<}^{|n-n'|}\!\left( \frac{|\mathbf{q}|^2 \ell_{B}^2}{2} \right)
+e^{-|\mathbf{q}|^2 \ell_{B}^2/4}
+$$
 
 where $n_< = \min(n, n')$, $n_> = \max(n, n')$, and $L_n^\alpha$ are the generalized Laguerre polynomials, and $\ell_B$ is the magnetic length.
 
