@@ -2,49 +2,13 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17646027.svg)](https://doi.org/10.5281/zenodo.17646027)
 
-Landau-level plane-wave form factors and exchange kernels for quantum Hall systems.
-
-This library factors out the continuum matrix-element kernels used in Hartree–Fock and
-related calculations into a small, reusable package. It provides:
+Landau-level plane-wave form factors and exchange kernels for quantum Hall systems in a small, reusable package (useful for Hartree-Fock and related calculations). It provides:
 
 - Analytic Landau-level plane-wave form factors $F_{n',n}(\mathbf{q})$.
-- Exchange kernels $X_{n_1 m_1 n_2 m_2}(\mathbf{G})$ computed via:
-  - Gauss-Legendre quadrature with rational mapping (`gausslegendre` backend, default).
-  - Generalized Gauss–Laguerre quadrature (`gausslag` backend).
-  - Hankel-transform based integration (`hankel` backend).
-- Symmetry diagnostics for verifying kernel implementations on a given G-grid.
+- Exchange kernels $X_{n_1 m_1 n_2 m_2}(\mathbf{G})$. 
+- Symmetry diagnostics for verifying kernel implementations. 
 
-## Backends and Reliability
-
-The package provides three backends for computing exchange kernels, each with different performance and stability characteristics:
-
-1.  **`gausslegendre` (Default)**:
-    -   **Method**: Gauss-Legendre quadrature mapped from $[-1, 1]$ to $[0, \infty)$ via a rational mapping.
-    -   **Pros**: Fast and numerically stable for all Landau level indices ($n$).
-    -   **Cons**: May require tuning `nquad` for extremely large momenta or indices ($n > 100$).
-    -   **Recommended for**: General usage, especially for large $n$ ($n \ge 10$).
-
-2.  **`gausslag`**:
-    -   **Method**: Generalized Gauss-Laguerre quadrature.
-    -   **Pros**: Very fast for small $n$.
-    -   **Cons**: Numerically unstable for large $n$ ($n \ge 12$) due to high-order Laguerre polynomial roots.
-    -   **Recommended for**: Small systems ($n < 10$) where speed is critical.
-
-3.  **`hankel`**:
-    -   **Method**: Discrete Hankel transform.
-    -   **Pros**: High precision and stability.
-    -   **Cons**: Significantly slower than quadrature methods.
-    -   **Recommended for**: Reference calculations and verifying other backends.
-
-## Mathematical Definitions
-
-### Plane-Wave Form Factors
-
-The form factors are the matrix elements of the plane-wave operator $e^{i \mathbf{q} \cdot \mathbf{R}}$ in the Landau level basis $|n\rangle$:
-
-$$ F_{n',n}(\mathbf{q}) = \langle n' | e^{i \mathbf{q} \cdot \mathbf{R}} | n \rangle $$
-
-Analytically, these are given by:
+### Plane-Wave Landau-level Form Factors $ (F_{n',n}(\mathbf{q}) = \langle n' | e^{i \mathbf{q} \cdot \mathbf{R}} | n \rangle )$
 
 $$
 F_{n',n}(\mathbf{q}) =
@@ -60,7 +24,6 @@ where $n_< = \min(n, n')$, $n_> = \max(n, n')$, and $L_n^\alpha$ are the general
 
 ### Exchange Kernels
 
-The exchange kernels $X_{n_1 m_1 n_2 m_2}(\mathbf{G})$ are defined as the Fourier transform of the interaction potential weighted by the form factors:
 
 $$ X_{n_1 m_1 n_2 m_2}(\mathbf{G}) = \int \frac{d^2 q}{(2\pi)^2} V(q) F_{n_1, m_1}(\mathbf{q}) F_{m_2, n_2}(-\mathbf{q}) e^{-i \mathbf{q} \cdot \mathbf{G} \ell_B^2} $$
 
@@ -70,11 +33,10 @@ where $V(q)$ is the interaction potential. For the Coulomb interaction, $V(q) = 
 
 The package performs calculations in dimensionless units where lengths are scaled by $\ell_B$. The interaction strength is parameterized by a dimensionless prefactor $\kappa$.
 
-- **Coulomb Interaction**: The code assumes a potential of the form $V(q) = \kappa \frac{2\pi \ell_B}{q \ell_B}$ (in effective dimensionless form).
-    - If you set `kappa = 1.0`, the resulting exchange kernels will be in units of the **Coulomb energy scale** $E_C = e^2 / (\epsilon \ell_B)$.
-    - If you want the results in units of the cyclotron energy $\hbar \omega_c$, you should set $\kappa = E_C / (\hbar \omega_c) = (e^2/\epsilon \ell_B) / (\hbar \omega_c)$.
-
-- **General Potential**: For a general $V(q)$, the function `V_of_q` should return values in your desired energy units. The integration measure $d^2q/(2\pi)^2$ introduces a factor of $1/\ell_B^2$, so ensure your potential scaling is consistent.
+- **Coulomb interaction**: The code assumes a potential of the form $V(q) = \kappa \frac{2\pi \ell_B}{q \ell_B}$ (in effective dimensionless form).
+  - If you set `kappa = 1.0`, the resulting exchange kernels are in units of the Coulomb energy scale $E_C = e^2 / (\epsilon \ell_B)$.
+  - To express results in units of the cyclotron energy $\hbar \omega_c$, set $\kappa = E_C / (\hbar \omega_c) = (e^2/\epsilon \ell_B) / (\hbar \omega_c)$.
+- **General potential**: For a general $V(q)$, `V_of_q` should return values in your desired energy units. The integration measure $d^2q/(2\pi)^2$ introduces a factor of $1/\ell_B^2$, so ensure your potential scaling is consistent.
 
 ## Installation
 
@@ -111,11 +73,28 @@ print("F shape:", F.shape)
 print("X shape:", X.shape)
 ```
 
+To use a user-provided Coulomb interaction, pass a callable `V_of_q` and select the `"general"` potential:
+
+```python
+def V_coulomb(q, kappa=1.0):
+    # q is in 1/ℓ_B units; this returns V(q) in Coulomb units
+    return kappa * 2.0 * np.pi / q
+
+X_coulomb = get_exchange_kernels(
+    Gs_dimless,
+    thetas,
+    nmax,
+    method="gausslegendre",
+    potential="general",
+    V_of_q=lambda q: V_coulomb(q, kappa=1.0),
+)
+```
+
 For more detailed examples, see the example scripts under `examples/` and the tests under `tests/`.
 
 ## Citation
 
-If you use the package `quantumhall-matrixelements` in academic work, please cite:
+If you use the package `quantumhall-matrixelements` in academic work, you must cite:
 
 > Tobias Wolf, *quantumhall-matrixelements: Quantum Hall Landau-Level Matrix Elements*, version 0.1.0, 2025.  
 > DOI: https://doi.org/10.5281/zenodo.17646027
@@ -123,6 +102,28 @@ If you use the package `quantumhall-matrixelements` in academic work, please cit
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17646027.svg)](https://doi.org/10.5281/zenodo.17646027)
 
 A machine-readable `CITATION.cff` file is included in the repository and can be used with tools that support it (for example, GitHub’s “Cite this repository” button).
+
+## Backends and Reliability
+
+The package provides three backends for computing exchange kernels, each with different performance and stability characteristics:
+
+1.  **`gausslegendre` (Default)**:
+    -   **Method**: Gauss-Legendre quadrature mapped from $[-1, 1]$ to $[0, \infty)$ via a rational mapping.
+    -   **Pros**: Fast and numerically stable for all Landau level indices ($n$).
+    -   **Cons**: May require tuning `nquad` for extremely large momenta or indices ($n > 100$).
+    -   **Recommended for**: General usage, especially for large $n$ ($n \ge 10$).
+
+2.  **`gausslag`**:
+    -   **Method**: Generalized Gauss-Laguerre quadrature.
+    -   **Pros**: Very fast for small $n$.
+    -   **Cons**: Numerically unstable for large $n$ ($n \ge 12$) due to high-order Laguerre polynomial roots.
+    -   **Recommended for**: Small systems ($n < 10$) where speed is critical.
+
+3.  **`hankel`**:
+    -   **Method**: Discrete Hankel transform.
+    -   **Pros**: High precision and stability.
+    -   **Cons**: Significantly slower than quadrature methods.
+    -   **Recommended for**: Reference calculations and verifying other backends.
 
 ## Development
 
@@ -141,6 +142,6 @@ A machine-readable `CITATION.cff` file is included in the repository and can be 
 
 ## Authors and license
 
-- Author: Tobias Wolf
+- Author: Dr. Tobias Wolf
 - Copyright © 2025 Tobias Wolf
 - License: MIT (see `LICENSE`).
