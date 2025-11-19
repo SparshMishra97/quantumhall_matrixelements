@@ -1,4 +1,4 @@
-# quantumhall_matrixelements
+# quantumhall-matrixelements: Quantum Hall Landau-Level Matrix Elements
 
 Landau-level plane-wave form factors and exchange kernels for quantum Hall systems.
 
@@ -76,7 +76,13 @@ The package performs calculations in dimensionless units where lengths are scale
 
 ## Installation
 
-From a local checkout:
+From PyPI (once published):
+
+```bash
+pip install quantumhall-matrixelements
+```
+
+From a local checkout (development install):
 
 ```bash
 pip install -e .[dev]
@@ -103,7 +109,15 @@ print("F shape:", F.shape)
 print("X shape:", X.shape)
 ```
 
-For more detailed examples, see the tests under `tests/`.
+For more detailed examples, see the example scripts under `examples/` and the tests under `tests/`.
+
+## Citation
+
+If you use the package`quantumhall-matrixelements` in academic work, please cite:
+
+> Tobias Wolf, *quantumhall-matrixelements: Quantum Hall Landau-Level Matrix Elements*, version 0.1.0, 2025. DOI: to be assigned via Zenodo.
+
+A machine-readable `CITATION.cff` file is included in the repository and can be used with tools that support it (for example, GitHub’s “Cite this repository” button).
 
 ## Development
 
@@ -120,3 +134,8 @@ For more detailed examples, see the tests under `tests/`.
   mypy .
   ```
 
+## Authors and license
+
+- Author: Tobias Wolf
+- Copyright © 2025 Tobias Wolf
+- License: MIT (see `LICENSE`).
