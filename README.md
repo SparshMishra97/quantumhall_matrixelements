@@ -7,9 +7,32 @@ related calculations into a small, reusable package. It provides:
 
 - Analytic Landau-level plane-wave form factors $F_{n',n}(\mathbf{q})$.
 - Exchange kernels $X_{n_1 m_1 n_2 m_2}(\mathbf{G})$ computed via:
+  - Gauss-Legendre quadrature with rational mapping (`gausslegendre` backend, default).
   - Generalized Gauss–Laguerre quadrature (`gausslag` backend).
   - Hankel-transform based integration (`hankel` backend).
 - Symmetry diagnostics for verifying kernel implementations on a given G-grid.
+
+## Backends and Reliability
+
+The package provides three backends for computing exchange kernels, each with different performance and stability characteristics:
+
+1.  **`gausslegendre` (Default)**:
+    -   **Method**: Gauss-Legendre quadrature mapped from $[-1, 1]$ to $[0, \infty)$ via a rational mapping.
+    -   **Pros**: Fast and numerically stable for all Landau level indices ($n$).
+    -   **Cons**: May require tuning `nquad` for extremely large momenta or indices ($n > 100$).
+    -   **Recommended for**: General usage, especially for large $n$ ($n \ge 10$).
+
+2.  **`gausslag`**:
+    -   **Method**: Generalized Gauss-Laguerre quadrature.
+    -   **Pros**: Very fast for small $n$.
+    -   **Cons**: Numerically unstable for large $n$ ($n \ge 12$) due to high-order Laguerre polynomial roots.
+    -   **Recommended for**: Small systems ($n < 10$) where speed is critical.
+
+3.  **`hankel`**:
+    -   **Method**: Discrete Hankel transform.
+    -   **Pros**: High precision and stability.
+    -   **Cons**: Significantly slower than quadrature methods.
+    -   **Recommended for**: Reference calculations and verifying other backends.
 
 ## Mathematical Definitions
 
@@ -66,7 +89,7 @@ thetas = np.array([0.0, 0.0, np.pi])
 nmax = 2
 
 F = get_form_factors(Gs_dimless, thetas, nmax)          # shape (nG, nmax, nmax)
-X = get_exchange_kernels(Gs_dimless, thetas, nmax)      # default 'gausslag' backend
+X = get_exchange_kernels(Gs_dimless, thetas, nmax)      # default 'gausslegendre' backend
 
 print("F shape:", F.shape)
 print("X shape:", X.shape)

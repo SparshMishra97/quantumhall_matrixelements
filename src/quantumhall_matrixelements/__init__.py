@@ -17,6 +17,7 @@ import numpy as np
 from .planewave import get_form_factors
 from .exchange_gausslag import get_exchange_kernels_GaussLag
 from .exchange_hankel import get_exchange_kernels_hankel
+from .exchange_legendre import get_exchange_kernels_GaussLegendre
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
@@ -31,6 +32,7 @@ def get_exchange_kernels(
     nmax: int,
     *,
     method: str | None = None,
+    **kwargs,
 ) -> "ComplexArray":
     """Dispatcher for exchange kernels.
 
@@ -44,21 +46,28 @@ def get_exchange_kernels(
     method :
         Backend selector:
 
-        - ``'gausslag'`` (default): generalized Gauss–Laguerre quadrature
-          over the radial integral, using the analytic angular dependence.
-        - ``'hankel'``          : Hankel-transform based implementation.
+        - ``'gausslegendre'`` (default): Gauss-Legendre quadrature with rational mapping.
+          Recommended for all nmax.
+        - ``'gausslag'``: generalized Gauss–Laguerre quadrature.
+          Fast for small nmax (< 10), but unstable for large nmax.
+        - ``'hankel'``: Hankel-transform based implementation.
+
+    **kwargs :
+        Additional arguments passed to the backend (e.g. ``nquad``, ``scale``).
 
     Notes
     -----
     Both backends return kernels normalized for :math:`\\kappa = 1`. Any
     physical interaction strength should be applied by the caller.
     """
-    chosen = (method or "gausslag").strip().lower()
+    chosen = (method or "gausslegendre").strip().lower()
     if chosen in {"gausslag", "gauss-lag", "gausslaguerre", "gauss-laguerre", "gl"}:
-        return get_exchange_kernels_GaussLag(G_magnitudes, G_angles, nmax)
+        return get_exchange_kernels_GaussLag(G_magnitudes, G_angles, nmax, **kwargs)
     if chosen in {"hankel", "hk"}:
-        return get_exchange_kernels_hankel(G_magnitudes, G_angles, nmax)
-    raise ValueError(f"Unknown exchange-kernel method: {method!r}. Use 'gausslag' or 'hankel'.")
+        return get_exchange_kernels_hankel(G_magnitudes, G_angles, nmax, **kwargs)
+    if chosen in {"gausslegendre", "gauss-legendre", "legendre", "leg"}:
+        return get_exchange_kernels_GaussLegendre(G_magnitudes, G_angles, nmax, **kwargs)
+    raise ValueError(f"Unknown exchange-kernel method: {method!r}. Use 'gausslegendre', 'gausslag', or 'hankel'.")
 
 
 __all__ = [
@@ -66,5 +75,6 @@ __all__ = [
     "get_exchange_kernels",
     "get_exchange_kernels_GaussLag",
     "get_exchange_kernels_hankel",
+    "get_exchange_kernels_GaussLegendre",
 ]
 

@@ -75,6 +75,7 @@ def get_exchange_kernels_hankel(
     G_magnitudes: "RealArray",
     G_angles: "RealArray",
     nmax: int,
+    **kwargs,
 ) -> "ComplexArray":
     """Compute X_{n1,m1,n2,m2}(G) via Hankel transforms (κ=1 convention).
 
