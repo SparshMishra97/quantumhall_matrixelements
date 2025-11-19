@@ -50,7 +50,7 @@ i^{|n-n'|}
 e^{i(n-n')\theta_{\mathbf{q}}}
 \sqrt{\frac{n_{<}!}{n_{>}!}}
 \left( \frac{|\mathbf{q}|\ell_{B}}{\sqrt{2}} \right)^{|n-n'|}
-L_{n_<}^{|n-n'|}\!\left( \frac{|\mathbf{q}|^2 \ell_{B}^2}{2} \right)
+L_{n_<}^{|n-n'|}\left( \frac{|\mathbf{q}|^2 \ell_{B}^2}{2} \right)
 e^{-|\mathbf{q}|^2 \ell_{B}^2/4}
 $$
 
