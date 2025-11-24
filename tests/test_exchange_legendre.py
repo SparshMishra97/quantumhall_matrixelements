@@ -30,3 +30,24 @@ def test_legendre_large_n_stability():
     # This should not raise an error
     X = get_exchange_kernels_GaussLegendre(Gs_dimless, thetas, nmax, nquad=500)
     assert np.isfinite(X).all()
+
+
+def test_legendre_callable_potential_matches_coulomb():
+    """Callable potential should reproduce Coulomb when given V(q)=2πκ/q."""
+    nmax = 3
+    Gs_dimless = np.array([0.3, 1.1])
+    thetas = np.array([0.0, 0.7])
+    kappa = 1.2
+    nquad = 300
+
+    def V_coulomb(q):
+        return kappa * 2.0 * np.pi / q
+
+    X_coulomb = get_exchange_kernels_GaussLegendre(
+        Gs_dimless, thetas, nmax, potential="coulomb", kappa=kappa, nquad=nquad
+    )
+    X_callable = get_exchange_kernels_GaussLegendre(
+        Gs_dimless, thetas, nmax, potential=V_coulomb, nquad=nquad
+    )
+
+    assert np.allclose(X_callable, X_coulomb, rtol=1e-4, atol=1e-4)

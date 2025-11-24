@@ -57,9 +57,8 @@ def get_exchange_kernels_GaussLegendre(
     G_angles,
     nmax: int,
     *,
-    potential: str = "coulomb",
+    potential: str | callable = "coulomb",
     kappa: float = 1.0,
-    V_of_q=None,
     nquad: int = 1000,
     scale: float = 0.5,
     ell: float = 1.0,
@@ -78,11 +77,9 @@ def get_exchange_kernels_GaussLegendre(
     nmax :
         Number of Landau levels.
     potential :
-        Either ``'coulomb'`` (default) or ``'general'``.
+        ``'coulomb'`` (default) or a callable ``V(q)`` returning the interaction.
     kappa :
         Interaction strength prefactor.
-    V_of_q :
-        Callable ``V_of_q(q) -> V(q)`` used when ``potential='general'``.
     nquad :
         Number of quadrature points (default 1000).
     scale :
@@ -103,6 +100,21 @@ def get_exchange_kernels_GaussLegendre(
 
     Gscaled = G_magnitudes * float(ell)
     Xs = np.zeros((nG, nmax, nmax, nmax, nmax), dtype=np.complex128)
+
+    # Resolve potential
+    if callable(potential):
+        pot_kind = "callable"
+        pot_fn = potential
+    else:
+        pot_kind = str(potential).strip().lower()
+        pot_fn = None
+
+    if pot_kind == "coulomb":
+        pass
+    elif pot_kind == "callable":
+        pass
+    else:
+        raise ValueError("potential must be 'coulomb' or a callable V(q).")
 
     # Get mapped grid
     z, w = _legendre_nodes_weights_mapped(nquad, scale)
@@ -154,16 +166,13 @@ def get_exchange_kernels_GaussLegendre(
                         pref = (kappa * C / np.sqrt(2.0)) * phase_factor
                         
                     else:
-                        # General potential
-                        if not callable(V_of_q):
-                            raise ValueError("Provide V_of_q for potential='general'")
-                        
+                        # General/callable potential
                         alpha = 0.5 * (d1 + d2)
                         L1 = sps.eval_genlaguerre(p, d1, z)
                         L2 = sps.eval_genlaguerre(q, d2, z)
                         
                         qvals = np.sqrt(2.0 * z) / float(ell)
-                        Veff = V_of_q(qvals) / (2.0 * np.pi * float(ell) ** 2)
+                        Veff = pot_fn(qvals) / (2.0 * np.pi * float(ell) ** 2)
                         
                         if absN not in J_cache:
                             arg = np.sqrt(2.0 * z)[None, :] * Gscaled[:, None]

@@ -61,9 +61,8 @@ def get_exchange_kernels_GaussLag(
     G_angles,
     nmax: int,
     *,
-    potential: str = "coulomb",
+    potential: str | callable = "coulomb",
     kappa: float = 1.0,
-    V_of_q=None,
     nquad: int = 200,
     ell: float = 1.0,
 ) -> "ComplexArray":
@@ -76,13 +75,11 @@ def get_exchange_kernels_GaussLag(
     nmax :
         Number of Landau levels.
     potential :
-        Either ``'coulomb'`` (default) or ``'general'``. In the latter case
-        a callable ``V_of_q(q)`` must be provided.
+        ``'coulomb'`` (default), ``'constant'``, or a callable ``V(q)`` giving
+        the interaction in 1/ℓ units.
     kappa :
         Interaction strength prefactor. For Coulomb this corresponds to
         :math:`\\kappa = e^2/(\\varepsilon\\ell_B)/\\hbar\\omega_c`.
-    V_of_q :
-        Callable ``V_of_q(q) -> V(q)`` used when ``potential='general'``.
     nquad :
         Number of Gauss–Laguerre quadrature points.
     ell :
@@ -98,6 +95,21 @@ def get_exchange_kernels_GaussLag(
     if G_magnitudes.shape != G_angles.shape:
         raise ValueError("G_magnitudes and G_angles must have the same shape.")
     nG = G_magnitudes.size
+
+    # Resolve potential
+    if callable(potential):
+        pot_kind = "callable"
+        pot_fn = potential
+    else:
+        pot_kind = str(potential).strip().lower()
+        pot_fn = None
+
+    if pot_kind in {"coulomb", "constant"}:
+        pass
+    elif pot_kind == "callable":
+        pass
+    else:
+        raise ValueError("potential must be 'coulomb', 'constant', or a callable V(q).")
 
     Gscaled = G_magnitudes * float(ell)
     Xs = np.zeros((nG, nmax, nmax, nmax, nmax), dtype=np.complex128)
@@ -131,16 +143,12 @@ def get_exchange_kernels_GaussLag(
                         phase_factor = (1j) ** (d1 - d2)
                         pref = (kappa * C / np.sqrt(2.0)) * phase_factor
                     else:
-                        if not callable(V_of_q):
-                            raise ValueError(
-                                "For potential='general', provide V_of_q: callable(q)->V(q)."
-                            )
                         alpha = 0.5 * (d1 + d2)
                         z, w = _lag_nodes_weights(nquad, alpha)
                         L1 = _laguerre_on_grid(p, d1, alpha, nquad, z)
                         L2 = _laguerre_on_grid(q, d2, alpha, nquad, z)
                         qvals = np.sqrt(2.0 * z) / float(ell)
-                        Veff = V_of_q(qvals) / (2.0 * np.pi * float(ell) ** 2)
+                        Veff = pot_fn(qvals) / (2.0 * np.pi * float(ell) ** 2)
                         W = w * L1 * L2 * Veff
                         key = (absN, float(alpha))
                         J_abs = J_cache.get(key)
@@ -160,4 +168,3 @@ def get_exchange_kernels_GaussLag(
 
 
 __all__ = ["get_exchange_kernels_GaussLag"]
-

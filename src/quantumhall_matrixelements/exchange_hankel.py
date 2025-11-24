@@ -75,7 +75,9 @@ def get_exchange_kernels_hankel(
     G_magnitudes: "RealArray",
     G_angles: "RealArray",
     nmax: int,
-    **kwargs,
+    *,
+    potential: str | callable = "coulomb",
+    kappa: float = 1.0,
 ) -> "ComplexArray":
     """Compute X_{n1,m1,n2,m2}(G) via Hankel transforms (κ=1 convention).
 
@@ -83,6 +85,18 @@ def get_exchange_kernels_hankel(
     robust Laguerre-based normalization and explicit control over the Bessel
     order. It is numerically more intensive than the Gauss–Laguerre backend
     but can be useful for cross-checks or alternative potentials.
+
+    Parameters
+    ----------
+    G_magnitudes, G_angles :
+        Arrays describing |G| and polar angle θ_G (same shape, no broadcasting).
+    nmax :
+        Number of Landau levels.
+    potential :
+        ``'coulomb'`` (default), ``'constant'``, or a callable ``V(q)`` giving
+        the interaction in 1/ℓ units.
+    kappa :
+        Prefactor for Coulomb/constant cases.
     """
     G_magnitudes = np.asarray(G_magnitudes, dtype=float)
     G_angles = np.asarray(G_angles, dtype=float)
@@ -93,6 +107,18 @@ def get_exchange_kernels_hankel(
     # Note: np.unique sorts; use inverse map to scatter back to original order.
     k_unique, inv_idx = np.unique(G_magnitudes, return_inverse=True)
     nG = G_magnitudes.size
+
+    # Resolve potential
+    if callable(potential):
+        pot_callable = potential
+        pot_key = ("callable", id(potential))
+    else:
+        pot_name = str(potential).strip().lower()
+        if pot_name in {"coulomb", "constant"}:
+            pot_callable = pot_name
+            pot_key = (pot_name, float(kappa))
+        else:
+            raise ValueError("potential must be 'coulomb', 'constant', or callable V(q)")
 
     # Precompute angular phase vectors for all possible N values
     # N = (n1 - m1) - (m2 - n2) ∈ [Nmin, Nmax]
@@ -115,8 +141,8 @@ def get_exchange_kernels_hankel(
         np.arange(nmax)[None, :].repeat(nmax, axis=0),
     )
 
-    # Cache for radial Hankel transforms keyed by (d1,N1,d2,N2,absN)
-    radial_cache: dict[tuple[int, int, int, int, int], np.ndarray] = {}
+    # Cache for radial Hankel transforms keyed by (d1,N1,d2,N2,absN,pot_key)
+    radial_cache: dict[tuple[int, int, int, int, int, tuple], np.ndarray] = {}
 
     # Output
     Xs = np.zeros((nG, nmax, nmax, nmax, nmax), dtype=np.complex128)
@@ -127,13 +153,15 @@ def get_exchange_kernels_hankel(
         d2 = int(d_mat[n2, m2])
         N1 = int(Nmin_mat[n1, m1])
         N2 = int(Nmin_mat[n2, m2])
-        key = (d1, N1, d2, N2, int(absN))
+        key = (d1, N1, d2, N2, int(absN), pot_key)
         arr = radial_cache.get(key)
         if arr is not None:
             return arr
 
         def integrand(q):
-            return _radial_exchange_integrand_rgamma(q, n1, m1, n2, m2)
+            return _radial_exchange_integrand_rgamma(
+                q, n1, m1, n2, m2, potential=pot_callable, kappa=kappa
+            )
 
         ht = _get_hankel_transformer(absN)
         # Compute only on unique radii, then cache
@@ -162,4 +190,3 @@ def get_exchange_kernels_hankel(
 
 
 __all__ = ["get_exchange_kernels_hankel"]
-

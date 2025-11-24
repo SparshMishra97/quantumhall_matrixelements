@@ -37,7 +37,7 @@ The package performs calculations in dimensionless units where lengths are scale
 - **Coulomb interaction**: The code assumes a potential of the form $V(q) = \kappa \frac{2\pi e^2}{q \ell_B}$ (in effective dimensionless form).
   - If you set `kappa = 1.0`, the resulting exchange kernels are in units of the Coulomb energy scale $E_C = e^2 / (\epsilon \ell_B)$.
   - To express results in units of the cyclotron energy $\hbar \omega_c$, set $\kappa = E_C / (\hbar \omega_c) = (e^2/\epsilon \ell_B) / (\hbar \omega_c)$.
-- **General potential**: For a general $V(q)$, `V_of_q` should return values in your desired energy units. The integration measure $d^2q/(2\pi)^2$ introduces a factor of $1/\ell_B^2$, so ensure your potential scaling is consistent.
+- **Custom potential**: Provide a callable `potential(q)` that returns values in your desired energy units. The integration measure $d^2q/(2\pi)^2$ introduces a factor of $1/\ell_B^2$, so ensure your potential scaling is consistent.
 
 ## Installation
 
@@ -74,7 +74,7 @@ print("F shape:", F.shape)
 print("X shape:", X.shape)
 ```
 
-To use a user-provided Coulomb interaction, pass a callable `V_of_q` and select the `"general"` potential:
+To use a user-provided interaction, pass a callable directly as `potential`:
 
 ```python
 def V_coulomb(q, kappa=1.0):
@@ -86,8 +86,7 @@ X_coulomb = get_exchange_kernels(
     thetas,
     nmax,
     method="gausslegendre",
-    potential="general",
-    V_of_q=lambda q: V_coulomb(q, kappa=1.0),
+    potential=lambda q: V_coulomb(q, kappa=1.0),
 )
 ```
 

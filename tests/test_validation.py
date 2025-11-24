@@ -93,3 +93,23 @@ def test_gausslag_convergence():
     
     assert np.allclose(X_low, X_high, rtol=1e-6, atol=1e-4), \
         "Gauss-Laguerre quadrature not converged between nquad=50 and nquad=200"
+
+
+def test_hankel_callable_potential_matches_coulomb():
+    """Hankel backend should respect a user-supplied callable identical to Coulomb."""
+    nmax = 2
+    Gs_dimless = np.array([0.8, 1.6])
+    thetas = np.array([0.0, 0.4])
+    kappa = 0.9
+
+    def V_coulomb(q):
+        return kappa * 2.0 * np.pi / q
+
+    X_coulomb = get_exchange_kernels(
+        Gs_dimless, thetas, nmax, method="hankel", potential="coulomb", kappa=kappa
+    )
+    X_callable = get_exchange_kernels(
+        Gs_dimless, thetas, nmax, method="hankel", potential=V_coulomb
+    )
+
+    assert np.allclose(X_callable, X_coulomb, rtol=1e-4, atol=1e-4)
