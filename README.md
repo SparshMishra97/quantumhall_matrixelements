@@ -34,7 +34,7 @@ where $V(q)$ is the interaction potential. For the Coulomb interaction, $V(q) = 
 
 The package performs calculations in dimensionless units where lengths are scaled by $\ell_B$. The interaction strength is parameterized by a dimensionless prefactor $\kappa$.
 
-- **Coulomb interaction**: The code assumes a potential of the form $V(q) = \kappa \frac{2\pi \ell_B}{q \ell_B}$ (in effective dimensionless form).
+- **Coulomb interaction**: The code assumes a potential of the form $V(q) = \kappa \frac{2\pi e^2}{q \ell_B}$ (in effective dimensionless form).
   - If you set `kappa = 1.0`, the resulting exchange kernels are in units of the Coulomb energy scale $E_C = e^2 / (\epsilon \ell_B)$.
   - To express results in units of the cyclotron energy $\hbar \omega_c$, set $\kappa = E_C / (\hbar \omega_c) = (e^2/\epsilon \ell_B) / (\hbar \omega_c)$.
 - **General potential**: For a general $V(q)$, `V_of_q` should return values in your desired energy units. The integration measure $d^2q/(2\pi)^2$ introduces a factor of $1/\ell_B^2$, so ensure your potential scaling is consistent.
