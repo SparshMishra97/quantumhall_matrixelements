@@ -213,4 +213,9 @@ F^+_{n',n}(q) = (F^-_{n',n}(q))^* (-1)**(n' - n)
 
 Allan's code = -ve magnetic field 
 This package = +ve magnetic field
+
+Could add the actual wavefunction, hamiltonian and creation and 
+annihilation operators in the Readme so that its clear what the convention is for 
+either magnetic fields 
+
 """
