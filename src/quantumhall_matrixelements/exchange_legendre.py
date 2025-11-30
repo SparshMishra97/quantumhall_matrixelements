@@ -16,12 +16,14 @@ if TYPE_CHECKING:
 
 
 def _N_order(n1: int, m1: int, n2: int, m2: int) -> int:
-    return (n1 - m1) - (m2 - n2)
+    #return (n1 - m1) - (m2 - n2)# change here 
+    return ((n1 - m1) + (m2 - n2))
 
 
 def _parity_factor(N: int) -> int:
     """(-1)^((N+|N|)/2) → (-1)^N for N>=0, and 1 for N<0."""
-    return (-1) ** ((N + abs(N)) // 2)
+    #return (-1) ** ((N + abs(N)) // 2) # change here
+    return (-1) ** ((N - abs(N)) // 2) # CHANGE HERE NEGATIVE B FIELD
 
 
 @lru_cache(maxsize=None)
@@ -141,7 +143,7 @@ def get_exchange_kernels_GaussLegendre(
                         # Integrand factor: exp(-z) * z^alpha * L * L * J
                         # alpha = (d1 + d2 - 1) / 2
                         alpha = 0.5 * (d1 + d2 - 1)
-                        
+
                         L1 = sps.eval_genlaguerre(p, d1, z)
                         L2 = sps.eval_genlaguerre(q, d2, z)
                         
@@ -162,7 +164,9 @@ def get_exchange_kernels_GaussLegendre(
                         radial = (J_abs * term) @ w
                         
                         signN = _parity_factor(N)
-                        phase_factor = (1j) ** (d1 - d2)
+
+                        #phase_factor = (1j) ** (d1 - d2) ## changed here
+                        phase_factor = (1j) ** (d1 + d2)  #CHANGE HERE NEGATIVE B FIELD 
                         pref = (kappa * C / np.sqrt(2.0)) * phase_factor
                         
                     else:
@@ -183,13 +187,30 @@ def get_exchange_kernels_GaussLegendre(
                         radial = (J_abs * term) @ w
                         
                         signN = _parity_factor(N)
-                        phase_factor = (1j) ** (d1 - d2)
+                        #phase_factor = (1j) ** (d1 - d2) ## changed here
+                        phase_factor = (1j) ** (d1 + d2) # CHANGED HERE NEGATIVE B FIELD 
                         pref = C * phase_factor
 
-                    phase = np.exp(-1j * N * G_angles)
-                    Xs[:, n1, m1, n2, m2] = (pref * phase) * (signN * radial)
+                    phase = np.exp(-1j * N * G_angles) #CHANGED HERE NEGATIVE B FIELD 
+                    #phase = np.exp(1j * N * G_angles)
+
+                    extra_sgn = (-1)**(n2-m2) # CHANGED HERE NEGATIVE B FIELD  
+
+                    Xs[:, n1, m1, n2, m2] = (pref * phase) * (signN * radial) * extra_sgn # CHANGED HERE NEGATIVE B FIELD
 
     return Xs
 
 
 __all__ = ["get_exchange_kernels_GaussLegendre"]
+
+"""
+Suggestion for changes:
+Add a B field direction option. -ve one just requires complex conjugate and sign factor
+
+X^+_{n1,m1,n2,m2}(G) = (X^-_{n1,m1,n2,m2}(G))^* (-1)**(i - j + l - k)
+
+F^+_{n',n}(q) = (F^-_{n',n}(q))^* (-1)**(n' - n)
+
+Allan's code = -ve magnetic field 
+This package = +ve magnetic field
+"""

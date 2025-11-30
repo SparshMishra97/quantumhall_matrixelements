@@ -13,8 +13,8 @@ from quantumhall_matrixelements import get_exchange_kernels
 
 
 def main() -> None:
-    nmax = 2
-    q = np.linspace(0.2, 3.0, 60)
+    nmax = 10
+    q = np.linspace(0.2, 20.0, 60)
     theta = np.zeros_like(q)
 
     X_gl = get_exchange_kernels(q, theta, nmax, method="gausslag")

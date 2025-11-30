@@ -40,7 +40,10 @@ def _analytic_form_factor(
     laguerre_poly = eval_genlaguerre(n_min, delta_n_abs, arg_z)
 
     # Phase convention: F_{n',n}(q) ∝ i^{|Δn|} e^{i (n - n') θ}
-    angles = (n_col - n_row) * q_angles + (np.pi / 2) * delta_n_abs
+    angles = (n_col - n_row) * q_angles + (np.pi / 2) * delta_n_abs #here
+
+    
+
     angular_phase = np.cos(angles) + 1j * np.sin(angles)
 
     F = (
@@ -50,6 +53,7 @@ def _analytic_form_factor(
         * laguerre_poly
         * np.exp(-0.5 * arg_z)
     )
+
     return F if F.ndim > 0 else F[()]
 
 
